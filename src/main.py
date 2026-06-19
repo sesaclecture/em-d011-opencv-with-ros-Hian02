@@ -21,7 +21,11 @@ def make_filter_config(
     lower,
     upper,
 ):
-    raise NotImplementedError
+    return {
+        "color_space": color_space,
+        "lower": lower,
+        "upper": upper,
+    }
 
 
 # 문제 2.
@@ -34,7 +38,13 @@ def make_filter_config(
 #
 # (color_space, lower, upper)
 def load_filter_config(json_text):
-    raise NotImplementedError
+    config = json.loads(json_text)
+
+    color_space = config["color_space"]
+    lower = config["lower"]
+    upper = config["upper"]
+
+    return color_space, lower, upper
 
 
 # 문제 3.
@@ -49,7 +59,13 @@ def load_filter_config(json_text):
 #
 # 객체가 없으면 None을 반환하세요.
 def find_bounding_box(mask):
-    raise NotImplementedError
+    points = cv2.findNonZero(mask)
+
+    if points is None:
+        return None
+    x, y, w, h = cv2.boundingRect(points)
+
+    return x, y, w, h
 
 
 # 문제 4.
@@ -72,8 +88,19 @@ def decide_tracking_command(
     image_width,
     object_area,
 ):
-    raise NotImplementedError
+    if object_area >= 5000:
+        return "stop"
 
+    image_center_x = image_width / 2
+
+    tolerance = image_width * 0.1
+
+    if center_x < image_center_x - tolerance:
+        return "turn_left"
+    elif center_x > image_center_x + tolerance:
+        return "turn_right"
+    else:
+        return "forward"
 
 # 문제 5.
 #
@@ -83,4 +110,13 @@ def decide_tracking_command(
 #
 # (linear_x, angular_z)
 def command_to_twist(command):
-    raise NotImplementedError
+    if command == "forward":
+        return 0.2, 0.0
+    elif command == "turn_left":
+        return 0.0, 0.5
+    elif command == "turn_right":
+        return 0.0, -0.5
+    elif command == "stop":
+        return 0.0, 0.0
+    else:
+        return 0.0, 0.0
